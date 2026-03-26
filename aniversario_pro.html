@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magdyel - Mi Vida Entera</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lora:ital,wght@0,400;0,600;1,400&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           CONFIGURACIÓN MAESTRA
+           ========================================= */
+        :root {
+            --primary: #b00b3b;
+            --wine: #4a0417;
+            --gold: #ffd700;
+            --cream: #fffdf9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            width: 100vw; height: 100vh; height: 100svh;
+            background: #050505;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; font-family: 'Lora', serif;
+        }
+
+        #star-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+        /* =========================================
+           ESTRUCTURA DEL LIBRO (AMPLIADA)
+           ========================================= */
+        .book {
+            position: relative;
+            width: 95%; max-width: 440px; height: 90%; 
+            background: var(--cream);
+            border-radius: 10px 40px 40px 10px;
+            box-shadow: 0 50px 150px rgba(0,0,0,1);
+            border-left: 18px solid var(--wine);
+            z-index: 10; display: flex; flex-direction: column;
+        }
+
+        .pages {
+            flex: 1; padding: 50px 25px 150px 25px;
+            overflow-y: auto; display: flex; flex-direction: column; align-items: center;
+            text-align: center; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+        }
+        .pages::-webkit-scrollbar { width: 0; }
+
+        /* PORTADA */
+        .cover {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(145deg, #7a0624 0%, #0a0003 100%);
+            border-radius: 10px 40px 40px 10px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; z-index: 100; transition: transform 2.2s cubic-bezier(0.6, 0, 0.4, 1), opacity 1.5s ease;
+            transform-origin: left center; padding: 40px;
+        }
+        .cover.open { transform: rotateY(-175deg); opacity: 0; pointer-events: none; }
+
+        .lock-panel {
+            width: 100%; max-width: 300px; padding: 35px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 35px; backdrop-filter: blur(15px);
+            margin-top: 35px; display: flex; flex-direction: column; align-items: center;
+        }
+
+        .pass-field {
+            width: 110px; height: 75px; background: white; border: none;
+            border-radius: 20px; color: var(--primary); font-size: 2.8em;
+            text-align: center; font-family: 'monospace'; font-weight: bold;
+            margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* COMPONENTES REVEAL */
+        .reveal { opacity: 0; transform: translateY(60px); transition: 1.2s ease; margin-bottom: 120px; width: 100%; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .name-gold {
+            font-family: 'Dancing Script', cursive; font-size: 3.8em;
+            background: linear-gradient(to right, #fff, var(--gold), #fff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-size: 200% auto; animation: shine 4s infinite linear;
+        }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        .card-luxe {
+            background: white; border-radius: 30px; padding: 35px 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06); border: 1px solid #f2f2f2;
+            width: 100%; position: relative;
+        }
+        .card-luxe::before { content: "❦"; position: absolute; top: 10px; left: 15px; color: var(--primary); opacity: 0.2; font-size: 2em; }
+
+        /* CARRETE 3D */
+        .stage-3d { height: 350px; width: 100%; display: flex; justify-content: center; align-items: center; perspective: 1500px; margin: 30px 0; }
+        .carousel { width: 150px; height: 210px; position: relative; transform-style: preserve-3d; animation: autoRotate 30s infinite linear; }
+        .photo {
+            position: absolute; width: 150px; height: 210px;
+            background: white; padding: 8px 8px 35px 8px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); border-radius: 4px;
+            backface-visibility: hidden;
+        }
+        .photo img { width: 100%; height: 100%; object-fit: cover; }
+
+        @keyframes autoRotate { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+        .photo:nth-child(1) { transform: rotateY(0deg) translateZ(180px); }
+        .photo:nth-child(2) { transform: rotateY(60deg) translateZ(180px); }
+        .photo:nth-child(3) { transform: rotateY(120deg) translateZ(180px); }
+        .photo:nth-child(4) { transform: rotateY(180deg) translateZ(180px); }
+        .photo:nth-child(5) { transform: rotateY(240deg) translateZ(180px); }
+        .photo:nth-child(6) { transform: rotateY(300deg) translateZ(180px); }
+
+        /* JUEGO INTERACTIVO */
+        .game-area {
+            width: 100%; height: 250px; background: #fff5f7;
+            border: 3px dashed var(--primary); border-radius: 30px;
+            position: relative; overflow: hidden; margin-top: 20px;
+        }
+        #love-target { position: absolute; font-size: 50px; cursor: pointer; transition: 0.3s; user-select: none; }
+
+        /* BOTONES Y VIDEO */
+        .btn-magico {
+            background: linear-gradient(135deg, var(--primary), var(--wine));
+            color: white; border: none; padding: 20px 45px;
+            border-radius: 50px; font-weight: bold; font-size: 1.2em;
+            box-shadow: 0 15px 40px rgba(176, 11, 59, 0.4);
+        }
+
+        .video-wrapper { width: 100%; border-radius: 30px; border: 8px solid white; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,0.3); background: #000; }
+        video { width: 100%; display: block; }
+
+        .timer-display {
+            font-family: 'monospace'; font-size: 1.3em; color: var(--primary); font-weight: bold;
+            background: #fff5f7; padding: 15px; border-radius: 15px; margin-top: 15px; display: inline-block;
+        }
+
+        .petal { position: fixed; top: -10%; pointer-events: none; z-index: 9999; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <canvas id="star-canvas"></canvas>
+    <audio id="bgMusic" src="nuestra-cancion.mp3" loop></audio>
+
+    <div class="book">
+        <div class="cover" id="cover">
+            <p style="letter-spacing: 10px; font-size: 0.8em; opacity: 0.9;">EL CAPITULO DE AMOR 17 MESES DE AMOR </p>
+            <h1 class="name-gold">MAGDYEL</h1>
+            
+            <div class="lock-panel">
+                <p style="font-family:'Caveat'; color:var(--gold); font-size:1.8em; margin-bottom:20px;">Día de nuestra unión</p>
+                <input type="number" id="passInput" class="pass-field" placeholder="00">
+                <button class="btn-magico" onclick="unlockBook()">ABRIR PARA SIEMPRE ❤️</button>
+            </div>
+            <p style="margin-top:40px; font-size: 0.85em; color: rgba(255,255,255,0.4);">25 de Octubre • Nuestra Fecha</p>
+        </div>
+
+        <div class="pages" id="pageScroll">
+            
+            <div class="reveal">
+                <h2 style="font-family:'Dancing Script'; font-size: 2.8em; color:var(--primary);">NUESTRO CRONOMETRO ETERNO</h2>
+                <div class="card-luxe">
+                    <p style="color:#777; font-style: italic;">Desde aquel 25 de Octubre de 2024</p>
+                    <div id="yrsCount" style="font-weight:bold; margin-top:20px; font-size: 1.3em;"></div>
+                    <div id="mosCount" style="font-family:'Dancing Script'; color:var(--primary); font-size: 2.5em; margin:10px 0;"></div>
+                    <div class="timer-display" id="clock">00d : 00h : 00m : 00s</div>
+                </div>
+            </div>
+
+            <div class="reveal">
+                <div class="card-luxe" style="text-align: left; line-height: 2;">
+                    <h3 style="font-family:'Dancing Script'; color:var(--primary); font-size: 2.4em; text-align: center; margin-bottom: 20px;">Mi Primer Testamento</h3>
+                    <p>Magdyel, escribo esto porque a veces el corazón late tan fuerte que las palabras se quedan cortas. Quiero que sepas que eres la **mejor decisión de mi vida**. </p>
+                    <br>
+                    <p>No eres solo mi novia; eres mi refugio, la paz que encuentro después de un día difícil y la primera sonrisa en la que pienso al despertar. Me enamoré de tu forma de ver el mundo, de tu inteligencia y de esa magia que tienes para hacerme sentir el hombre más afortunado del universo y tambambien por soportarme de la fomra que soy .</p>
+                </div>
+            </div>
+
+            <div class="reveal">
+                <h2 style="font-family:'Dancing Script'; font-size: 2.8em; color:var(--primary);">Nuestros Retratos</h2>
+                <div class="stage-3d">
+                    <div class="carousel">
+                        <div class="photo"><img src="imagen/1amor.jpeg"></div>
+                        <div class="photo"><img src="imagen/2amor.jpeg"></div>
+                        <div class="photo"><img src="imagen/4amor.jpeg"></div>
+                        <div class="photo"><img src="imagen/negro.jpeg"></div>
+                        <div class="photo"><img src="imagen/6amor.jpeg"></div>
+                        <div class="photo"><img src="imagen/7amor.jpeg"></div>
+                    </div>
+                </div>
+                <p style="font-family:'Caveat'; font-size: 1.6em; color: #888;">Nuestra vida en píxeles...</p>
+            </div>
+
+            <div class="reveal">
+                <div class="card-luxe" style="background: #fffafa;">
+                    <h3 style="font-family:'Dancing Script'; color:var(--primary); font-size: 2.2em; margin-bottom: 20px;">Lo que eres para mí</h3>
+                    <div style="text-align: left; font-family:'Lora'; line-height: 1.8; color: #333;">
+                        <p>🌹 <strong>M</strong> - Maravillosa en cada detalle.</p>
+                        <p>🌹 <strong>A</strong> - Amorosa como nadie en este mundo.</p>
+                        <p>🌹 <strong>G</strong> - Genial, mi mente brillante favorita.</p>
+                        <p>🌹 <strong>D</strong> - Dulce, el azúcar de mis días.</p>
+                        <p>🌹 <strong>Y</strong> - Única (Y única para mí).</p>
+                        <p>🌹 <strong>E</strong> - Eterna, como lo que siento por ti.</p>
+                        <p>🌹 <strong>L</strong> - Luz, la que guía mi camino.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal">
+                <h2 style="font-family:'Dancing Script'; font-size: 2.6em; color:var(--primary);">Atrapa mi Cariño</h2>
+                <div class="card-luxe">
+                    <p style="font-size: 1em; color:#666;">Toca el corazón para leer una promesa:</p>
+                    <div class="game-area" id="gameArea">
+                        <div id="love-target" onclick="catchHeart()">❤️</div>
+                    </div>
+                    <div id="love-msg" style="margin-top:20px; font-family:'Caveat'; font-size: 2em; color:var(--primary); font-weight: bold; min-height: 2.5em;"></div>
+                </div>
+            </div>
+
+            <div class="reveal">
+                <div class="card-luxe" style="border: 2px solid var(--primary); background: #fffdf9;">
+                    <h3 style="font-family:'Dancing Script'; color:var(--primary); font-size: 2.4em; margin-bottom: 20px;">Contrato de Amor Eterno</h3>
+                    <p style="text-align: justify; font-size: 0.95em;">
+                        Yo, Miguel, me comprometo ante estas líneas a cuidar de Magdyel por encima de todas las cosas. Prometo ser su apoyo en las caídas, su risa en las alegrías y su compañero fiel en cada aventura. 
+                        <br><br>
+                        Este contrato no tiene fecha de vencimiento. Se renueva con cada beso y se firma con el alma.
+                    </p>
+                    <p style="margin-top: 20px; font-family: 'Caveat'; font-size: 1.8em; color: var(--wine);">Firma: Miguel ❤️</p>
+                </div>
+            </div>
+
+            <div class="reveal">
+                <h2 style="font-family:'Dancing Script'; font-size: 2.8em; color:var(--primary);">Nuestra Melodía</h2>
+                <div class="video-wrapper">
+                    <video id="miVideo" src="Leo Rizzi - Amapolas (Live Sessions).mp4" controls playsinline loop></video>
+                </div>
+            </div>
+
+            <div class="reveal" style="padding-bottom: 150px;">
+                <p style="font-family:'Dancing Script'; font-size: 4.5em; color:var(--primary); margin: 0;">Te amo,<br>Magdyel</p>
+                <div style="font-size: 4em; margin-top: 25px;">💍🌹💎✨💖</div>
+                <p style="margin-top: 50px; font-size: 0.9em; color: #aaa;">25/10/2024 • Por Siempre</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // MOTOR DE ESTRELLAS
+        const canvas = document.getElementById('star-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        function initStars() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            stars = [];
+            for(let i=0; i<180; i++) {
+                stars.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.5, d: Math.random()*0.05 });
+            }
+        }
+        function animate() {
+            ctx.clearRect(0,0,canvas.width, canvas.height); ctx.fillStyle = "white";
+            stars.forEach(s => {
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+                s.r += s.d; if(s.r > 2 || s.r < 0.5) s.d *= -1;
+            });
+            requestAnimationFrame(animate);
+        }
+        initStars(); animate();
+
+        // DESBLOQUEO
+        function unlockBook() {
+            const pass = document.getElementById('passInput').value;
+            if(pass === "25") {
+                document.getElementById('cover').classList.add('open');
+                document.getElementById('bgMusic').play().catch(() => {});
+                setTimeout(() => { document.getElementById('miVideo').play(); startSystems(); }, 1200);
+            } else { alert("Esa no es nuestra fecha, mi vida... ❤️"); }
+        }
+
+        // SISTEMAS
+        function startSystems() {
+            setInterval(createPetal, 500);
+            updateClock(); setInterval(updateClock, 1000);
+            revealScroll(); document.getElementById('pageScroll').addEventListener('scroll', revealScroll);
+            moveHeart();
+        }
+
+        function updateClock() {
+            const start = new Date(2024, 9, 25);
+            const now = new Date();
+            const diff = now - start;
+            let y = now.getFullYear() - start.getFullYear();
+            let m = now.getMonth() - start.getMonth();
+            if(now.getDate() < start.getDate()) m--;
+            if(m < 0) { y--; m += 12; }
+            document.getElementById('yrsCount').innerText = y === 0 ? "Nuestro primer viaje..." : `Llevamos ${y} Año y...`;
+            document.getElementById('mosCount').innerText = `${m} Meses de Gloria`;
+            const d = Math.floor(diff/86400000);
+            const h = Math.floor((diff%86400000)/3600000).toString().padStart(2,'0');
+            const min = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+            const s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+            document.getElementById('clock').innerText = `${d}d : ${h}h : ${min}m : ${s}s`;
+        }
+
+        const promesas = [
+            "Prometo amarte en tus días de sol y de lluvia.",
+            "Prometo ser tu apoyo incondicional siempre.",
+            "Prometo que nunca te faltarán mis besos.",
+            "Prometo construir el futuro que soñamos.",
+            "Prometo escucharte siempre con el corazón.",
+            "Prometo elegirte cada día de mi vida."
+        ];
+        function moveHeart() {
+            const h = document.getElementById('love-target');
+            const area = document.getElementById('gameArea');
+            h.style.left = Math.random() * (area.clientWidth - 60) + 'px';
+            h.style.top = Math.random() * (area.clientHeight - 60) + 'px';
+        }
+        function catchHeart() {
+            document.getElementById('love-msg').innerText = promesas[Math.floor(Math.random()*promesas.length)];
+            for(let i=0; i<15; i++) setTimeout(createPetal, i*80);
+            moveHeart();
+        }
+
+        function createPetal() {
+            const p = document.createElement('div');
+            p.className = 'petal';
+            p.innerText = ['🌸', '❤', '🌹', '✨', '💖', '💍'][Math.floor(Math.random()*6)];
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.fontSize = (Math.random() * 20 + 20) + 'px';
+            p.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 7000);
+        }
+
+        function revealScroll() {
+            document.querySelectorAll('.reveal').forEach(r => {
+                if(r.getBoundingClientRect().top < window.innerHeight * 0.9) r.classList.add('active');
+            });
+        }
+    </script>
+</body>
+</html>
