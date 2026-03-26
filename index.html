@@ -43,7 +43,7 @@
         }
 
         .pages {
-            flex: 1; padding: 50px 25px 150px 25px;
+            flex: 1; padding: 50px 25px 50px 25px;
             overflow-y: auto; display: flex; flex-direction: column; align-items: center;
             text-align: center; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
         }
@@ -127,6 +127,22 @@
             color: white; border: none; padding: 20px 45px;
             border-radius: 50px; font-weight: bold; font-size: 1.2em;
             box-shadow: 0 15px 40px rgba(176, 11, 59, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn-magico:active {
+            transform: scale(0.95);
+        }
+
+        .btn-cerrar {
+            background: linear-gradient(135deg, #4a0417, #0a0003);
+            font-size: 1em;
+            padding: 15px 30px;
+            margin-top: 40px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .video-wrapper { width: 100%; border-radius: 30px; border: 8px solid white; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,0.3); background: #000; }
@@ -148,7 +164,7 @@
 
     <div class="book">
         <div class="cover" id="cover">
-            <p style="letter-spacing: 10px; font-size: 0.8em; opacity: 0.9;">EL CAPITULO DE AMOR 17 MESES DE AMOR </p>
+            <p style="letter-spacing: 10px; font-size: 0.8em; opacity: 0.9;">EL CAPITULO DE  NUESTRO AMOR 17 MESES DE AMOR </p>
             <h1 class="name-gold">MAGDYEL</h1>
             
             <div class="lock-panel">
@@ -240,10 +256,12 @@
                 </div>
             </div>
 
-            <div class="reveal" style="padding-bottom: 150px;">
+            <div class="reveal">
                 <p style="font-family:'Dancing Script'; font-size: 4.5em; color:var(--primary); margin: 0;">Te amo,<br>Magdyel</p>
                 <div style="font-size: 4em; margin-top: 25px;">💍🌹💎✨💖</div>
                 <p style="margin-top: 50px; font-size: 0.9em; color: #aaa;">25/10/2024 • Por Siempre</p>
+                
+                <button class="btn-magico btn-cerrar" onclick="lockBook()">CERRAR EL LIBRO 🔒</button>
             </div>
 
         </div>
@@ -281,10 +299,32 @@
             } else { alert("Esa no es nuestra fecha, mi vida... ❤️"); }
         }
 
+        // BLOQUEO (Cerrar sesión)
+        function lockBook() {
+            // Cierra la portada
+            document.getElementById('cover').classList.remove('open');
+            
+            // Pausa la música y el video
+            document.getElementById('bgMusic').pause();
+            document.getElementById('miVideo').pause();
+            
+            // Limpia el campo de contraseña
+            document.getElementById('passInput').value = '';
+            
+            // Regresa el scroll al inicio para la próxima vez (espera a que la portada se cierre)
+            setTimeout(() => {
+                document.getElementById('pageScroll').scrollTop = 0;
+            }, 1000);
+        }
+
         // SISTEMAS
+        let petalInterval;
+        let clockInterval;
+
         function startSystems() {
-            setInterval(createPetal, 500);
-            updateClock(); setInterval(updateClock, 1000);
+            if(!petalInterval) petalInterval = setInterval(createPetal, 500);
+            updateClock(); 
+            if(!clockInterval) clockInterval = setInterval(updateClock, 1000);
             revealScroll(); document.getElementById('pageScroll').addEventListener('scroll', revealScroll);
             moveHeart();
         }
